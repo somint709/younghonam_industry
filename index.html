@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공업 지역 위기 대응 시뮬레이션</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.20);
+    --text-primary: #1a1a1a;
+    --text-secondary: #666;
+    --text-hint: #999;
+    --danger-bg: #fff3f3;
+    --danger-border: rgba(220,60,60,0.20);
+    --danger-text: #c0392b;
+    --success-bg: #f0faf4;
+    --success-border: rgba(30,150,80,0.20);
+    --success-text: #1a7a40;
+    --warning-bg: #fffbf0;
+    --warning-border: rgba(200,140,0,0.20);
+    --warning-text: #b8860b;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 22px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── PAGE 1 ── */
+  .title-area {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+  }
+  .title-area h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  .title-area p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .region-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .region-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 0.75rem;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    box-shadow: var(--shadow-sm);
+  }
+  .region-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .region-card:active { transform: translateY(0); }
+  .region-icon { font-size: 28px; margin-bottom: 8px; }
+  .region-name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .region-type { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ── PAGE 2 ── */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    transition: color 0.15s;
+  }
+  .back-btn:hover { color: var(--text-primary); }
+
+  .region-header { margin-bottom: 1.25rem; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+  }
+  .region-header h2 { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .region-header .sub { font-size: 13px; color: var(--text-secondary); }
+
+  .crisis-card {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .crisis-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--danger-text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.2px;
+  }
+  .crisis-card p {
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.8;
+  }
+
+  .choices-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .choice-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.12s, transform 0.1s;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .choice-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .choice-card:active { transform: translateY(0); }
+  .choice-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+  .choice-card p { font-size: 14px; color: var(--text-primary); line-height: 1.75; }
+
+  /* ── PAGE 3 ── */
+  .result-header {
+    text-align: center;
+    padding: 1.5rem 0 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .result-emoji { font-size: 44px; margin-bottom: 12px; }
+  .result-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+  .result-header p { font-size: 14px; color: var(--text-secondary); }
+
+  .result-choice-recap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .recap-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-hint);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .result-choice-recap p { font-size: 14px; color: var(--text-primary); line-height: 1.75; }
+
+  .outcome-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .outcome-card {
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    border: 1px solid;
+  }
+  .outcome-card.gain {
+    background: var(--success-bg);
+    border-color: var(--success-border);
+  }
+  .outcome-card.risk {
+    background: var(--danger-bg);
+    border-color: var(--danger-border);
+  }
+  .oc-label {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.2px;
+  }
+  .outcome-card.gain .oc-label { color: var(--success-text); }
+  .outcome-card.risk .oc-label { color: var(--danger-text); }
+  .outcome-card p { font-size: 13px; color: var(--text-primary); line-height: 1.65; }
+
+  .restart-btn {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-secondary);
+    transition: background 0.15s, color 0.15s;
+  }
+  .restart-btn:hover { background: var(--surface); color: var(--text-primary); }
+
+  @media (max-width: 480px) {
+    .region-grid { grid-template-columns: repeat(2, 1fr); }
+    .outcome-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- PAGE 1: 지역 선택 -->
+  <div id="page1" class="page active">
+    <div class="title-area">
+      <h1>⚙️ 공업 지역 위기 대응 시뮬레이션</h1>
+      <p>아래 8개 공업 지역 중 하나를 선택하여 위기 상황을 해결해 보세요</p>
+    </div>
+    <div class="region-grid">
+      <div class="region-card" onclick="selectRegion('busan')">
+        <div class="region-icon">🚢</div>
+        <div class="region-name">부산</div>
+        <div class="region-type">항만 물류<br>배후 공업</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('ulsan')">
+        <div class="region-icon">🚗</div>
+        <div class="region-name">울산</div>
+        <div class="region-type">자동차<br>중화학 공업</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('geoje')">
+        <div class="region-icon">⚓</div>
+        <div class="region-name">거제</div>
+        <div class="region-type">조선 공업</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('changwon')">
+        <div class="region-icon">⚙️</div>
+        <div class="region-name">창원</div>
+        <div class="region-type">종합 기계 공업</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('gwangju')">
+        <div class="region-icon">📺</div>
+        <div class="region-name">광주</div>
+        <div class="region-type">가전제품<br>자동차 조립</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('gwangyang')">
+        <div class="region-icon">🔋</div>
+        <div class="region-name">광양</div>
+        <div class="region-type">제철<br>신소재 공업</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('yeosu')">
+        <div class="region-icon">🧪</div>
+        <div class="region-name">여수</div>
+        <div class="region-type">석유 화학 공업</div>
+      </div>
+      <div class="region-card" onclick="selectRegion('pohang')">
+        <div class="region-icon">🏭</div>
+        <div class="region-name">포항</div>
+        <div class="region-type">제철 공업</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: 위기 상황 + 선택지 -->
+  <div id="page2" class="page">
+    <button class="back-btn" onclick="goBack()">
+      ← 지역 다시 선택
+    </button>
+    <div class="region-header">
+      <span class="badge">⚠ 위기 상황 카드</span>
+      <h2 id="r-name"></h2>
+      <div class="sub" id="r-sub"></div>
+    </div>
+    <div class="crisis-card">
+      <div class="crisis-label">🔴 위기 상황</div>
+      <p id="r-crisis"></p>
+    </div>
+    <div class="choices-label">대응 방안을 선택하세요</div>
+    <div id="choices-container"></div>
+  </div>
+
+  <!-- PAGE 3: 결과 -->
+  <div id="page3" class="page">
+    <button class="back-btn" onclick="goToPage2()">
+      ← 다른 대응 선택하기
+    </button>
+    <div class="result-header">
+      <div class="result-emoji" id="r-emoji"></div>
+      <h2 id="r-result-title"></h2>
+      <p id="r-result-sub"></p>
+    </div>
+    <div class="result-choice-recap">
+      <div class="recap-label">선택한 대응 방안</div>
+      <p id="r-choice-text"></p>
+    </div>
+    <div class="outcome-grid">
+      <div class="outcome-card gain">
+        <div class="oc-label">✅ 이득</div>
+        <p id="r-gain"></p>
+      </div>
+      <div class="outcome-card risk">
+        <div class="oc-label">⚠ 핸디캡</div>
+        <p id="r-risk"></p>
+      </div>
+    </div>
+    <button class="restart-btn" onclick="restart()">처음으로 돌아가기</button>
+  </div>
+
+</div>
+<script>
+const DATA = {
+  busan: {
+    name: "부산 공업 지역", type: "항만 물류 및 배후 공업 중심",
+    crisis: "싱가포르와 로테르담 등 세계의 유명한 항구들이 인공지능(AI)과 로봇이 알아서 일하는 '첨단 자동화 스마트 항구'로 변신하고 있습니다. 반면 부산항은 변신이 늦어져 큰 배들을 다른 나라 항구에 빼앗길 위기에 처했습니다. 게다가 항구 주변에서 배에 들어가는 부품을 만들던 전통 공장들도 일감이 줄어 문을 닫고 있습니다.",
+    choices: [
+      { text: "큰 돈이 들더라도 부산항 전체를 로봇과 AI가 움직이는 스마트 항구로 바꾸고, 부품 공장들을 친환경 선박 부품 공장으로 전면 개조한다.", gain: "미래 기술 토큰 2개 획득", risk: "자본금 2칸 차감", emoji: "🤖", title: "미래를 향한 전면 전환", sub: "스마트 항구로의 도전적인 선택입니다." },
+      { text: "기계 부품 가격과 항구 이용료를 대폭 깎아주어, 일단 전 세계의 배들과 주문을 부산으로 다시 끌어모은다.", gain: "자본금 1칸 획득", risk: "노동자 갈등 및 시설 노후화 리스크 발생 가능", emoji: "💰", title: "가격 경쟁력으로 승부", sub: "단기 수익 확보를 우선시하는 선택입니다." },
+      { text: "새로운 투자를 멈추고, 정부에서 지원금이 나올 때까지 지금 있는 항구 시설과 공장을 그대로 쓰며 버틴다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "현상 유지 전략", sub: "보수적인 생존 전략을 선택했습니다." }
+    ]
+  },
+  ulsan: {
+    name: "울산 공업 지역", type: "자동차 및 중화학 공업 중심",
+    crisis: "기후변화에 대응하기 위해 유럽 연합에서 2035년부터 휘발유나 경유를 쓰는 내연기관 자동차를 전면 금지하기로 계획하면서 전 세계적으로 내연기관 자동차의 수요가 둔화되고 있습니다. 그런데 기대를 모았던 전기차마저 최근 비싼 가격과 충전소 부족으로 갑자기 판매량이 뚝 떨어졌습니다. 울산의 거대한 자동차 공장들과 부품 공장들은 어떤 차를 만들어야 할지 몰라 혼란에 빠졌습니다.",
+    choices: [
+      { text: "전기차 인기가 잠깐 주춤하더라도, 앞으로 대세가 될 차세대 배터리와 수소·전기차 전용 공장을 짓는 데 모든 돈을 쏟아붓는다.", gain: "미래 기술 토큰 2개 획득, 환경 점수 상승", risk: "자본금 2칸 차감", emoji: "⚡", title: "수소·전기차 시대로 도약", sub: "미래 기술에 전부를 거는 선택입니다." },
+      { text: "당장 돈을 벌기 위해 요즘 다시 인기가 많아진 하이브리드 자동차와 이윤이 많이 남는 대형 SUV 생산을 늘린다.", gain: "자본금 1칸 획득", risk: "나중에 환경 규제 벌금 페널티 발생 가능", emoji: "🚙", title: "현실적인 단기 수익 추구", sub: "안정적 수익을 택하는 실리 전략입니다." },
+      { text: "공장을 더 늘리지 않고 일하는 시간을 줄이면서, 전 세계 자동차 시장이 다시 좋아질 때까지 조용히 눈치를 본다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "청년 인구 이탈, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "시장 회복 대기", sub: "시장의 흐름을 지켜보기로 했습니다." }
+    ]
+  },
+  geoje: {
+    name: "거제 공업 지역", type: "조선 공업 중심",
+    crisis: "조선업 경기 자체는 회복되어 배를 만들어 달라는 주문은 늘어났는데, 과거 불황기 때 떠나간 숙련공들이 거제로 돌아오지 않아 정작 거제도 조선소에서 힘들게 배를 만들 숙련된 기술자들이 부족합니다. 그사이 기술력을 엄청나게 키운 중국 조선소들이 우리나라보다 훨씬 싼 가격을 무기로 전 세계 배 주문을 싹쓸이해가고 있습니다.",
+    choices: [
+      { text: "사람이 부족해도 배를 만들 수 있도록 위험한 용접이나 페인트칠 작업을 로봇이 대신하는 자동화 시스템을 만들고, 친환경 연료(LNG·수소)로 움직이는 첨단 배 개발에 올인한다.", gain: "미래 기술 토큰 2개 획득, 환경 점수 상승", risk: "자본금 2칸 차감", emoji: "🤖", title: "로봇 자동화 + 친환경 조선", sub: "기술로 인력 부족을 극복하는 선택입니다." },
+      { text: "임금이 저렴한 외국인 이주 노동자를 대거 채용하여, 당장 밀려있는 일반 화물선 주문을 빠르게 만들어서 판다.", gain: "자본금 1칸 획득", risk: "안전사고 위험 및 품질 저하 페널티 발생 가능", emoji: "👷", title: "인력 확충으로 주문 소화", sub: "빠른 납기로 수익을 확보하는 전략입니다." },
+      { text: "만들기 어렵고 복잡한 큰 배 주문은 포기하고, 적은 인원으로도 만들 수 있는 작고 안전한 배만 만들며 버틴다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "기술 경쟁력 약화, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⛵", title: "소형 선박 특화 생존", sub: "규모를 줄여 안전하게 버티기로 했습니다." }
+    ]
+  },
+  changwon: {
+    name: "창원 공업 지역", type: "종합 기계 공업 중심",
+    crisis: "컴퓨터와 AI가 스스로 일하는 스마트 팩토리가 대세가 되면서, 창원의 주력 상품이었던 전통적인 아날로그 기계와 부품들을 사려는 나라가 없어졌습니다. 게다가 세계 여러 나라들이 자기네 나라 산업만 보호하겠다며 빗장을 걸어 잠그는 바람에 창원의 기계 수출길이 꽉 막혔습니다.",
+    choices: [
+      { text: "세워진 지 오래된 창원 공업 단지를 AI 중심의 첨단 디지털 단지로 완전히 뜯어고치고, 우주항공 부품이나 로봇 부품 같은 미래 산업으로 업종을 바꾼다.", gain: "미래 기술 토큰 2개 획득", risk: "자본금 2칸 차감", emoji: "🚀", title: "첨단 디지털 산업으로 전환", sub: "산업 구조를 통째로 바꾸는 대담한 도전입니다." },
+      { text: "규제가 덜 까다로운 틈새 국가들을 찾아가 창원의 또 다른 장점인 방위산업(탱크, 자주포 등 군사 무기)과 기본 기계들을 대량으로 수출한다.", gain: "자본금 1칸 획득", risk: "국제 정세 변화에 따른 돌발 수출 중단 리스크 부담", emoji: "🛡️", title: "방산 수출로 새 활로 모색", sub: "틈새 시장을 공략하는 현실적 전략입니다." },
+      { text: "새로운 기계를 들여오는 투자를 멈추고, 국내 대기업들이 주문하는 최소한의 물량만 만들며 경기 침체가 지나가길 기다린다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "장기 기술 경쟁 뒤처짐, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "내수 의존 생존 전략", sub: "국내 수요만으로 버티기로 결정했습니다." }
+    ]
+  },
+  gwangju: {
+    name: "광주 공업 지역", type: "가전제품 및 자동차 조립 중심",
+    crisis: "광주에 있던 대기업 냉장고, 세탁기 공장들이 인건비가 더 저렴한 동남아시아로 공장을 옮겨버렸습니다. 설상가상으로 광주 시민들과 기업이 힘을 합쳐 자동차를 만들던 위탁 생산 공장도 계약 기간이 끝나가면서 대규모로 일자리가 사라질 위기에 처했습니다.",
+    choices: [
+      { text: "다른 대기업의 주문만 받아서 대신 물건을 만드는 도시에서 벗어나, 광주만의 독자적인 자율주행 자동차 연구소와 지능형 가전제품 개발 센터를 짓는다.", gain: "미래 기술 토큰 2개 획득", risk: "자본금 2칸 차감", emoji: "🧠", title: "자체 기술 개발 독립 전략", sub: "광주만의 브랜드를 만드는 도전입니다." },
+      { text: "대기업 공장들이 광주를 떠나지 못하도록 세금을 엄청나게 깎아주고 임금을 동결하겠다는 조건을 제시해 기존 공장들의 계약을 강제로 연장한다.", gain: "자본금 1칸 획득", risk: "지역 노동계 반발 및 청년층 일자리 질 저하", emoji: "📋", title: "기업 유치로 고용 유지", sub: "혜택으로 기존 공장을 붙잡는 전략입니다." },
+      { text: "공장 규모를 줄이고, 국가나 도에서 주는 보조금에 의존하면서 동네 상점들을 활성화하는 쪽으로 방향을 튼다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "공업 도시 동력 상실, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "보조금 의존 방향 전환", sub: "보조금에 기대는 보수적인 선택입니다." }
+    ]
+  },
+  gwangyang: {
+    name: "광양 공업 지역", type: "제철 및 신소재 공업 중심",
+    crisis: "광양 제철소의 철강 산업이 침체한 상황에서, 광양은 새로운 돌파구로써 전기차 배터리에 들어가는 핵심 재료(양극재) 공장들을 많이 지었습니다. 하지만 최근 전 세계적으로 배터리 원료인 '리튬' 가격이 폭락하고 원료를 수입해 오는 길마저 국가 간 갈등으로 막히면서 공장들이 멈출 위기에 처했습니다.",
+    choices: [
+      { text: "다른 나라에서 원료를 수입하는 대신, 다 쓴 배터리를 수거해서 다시 원료를 뽑아내는 '폐배터리 재활용 공장'을 짓고 친환경 신소재 연구에 집중한다.", gain: "미래 기술 토큰 2개 획득, 환경 점수 상승", risk: "자본금 2칸 차감", emoji: "♻️", title: "폐배터리 재활용 순환 경제", sub: "자원 순환으로 공급망 위기를 돌파합니다." },
+      { text: "원료 가격이 비싸더라도 당장 구할 수 있는 우회 경로를 통해 원료를 사 와서, 기존에 대기업들과 맺었던 배터리 재료 납품 약속을 무조건 지킨다.", gain: "자본금 1칸 획득", risk: "원가 상승으로 인한 부채 리스크 부담", emoji: "🤝", title: "납품 약속 사수 전략", sub: "신뢰를 지키기 위해 비용을 감수합니다." },
+      { text: "배터리 원료 가격이 다시 정상으로 돌아올 때까지 새로 짓고 있던 공장 건설을 모두 중단하고, 지금 만들 수 있는 최소한의 물량만 만든다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "시장 주도권 상실, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "가격 안정 대기 전략", sub: "원자재 가격 회복을 기다리기로 했습니다." }
+    ]
+  },
+  yeosu: {
+    name: "여수 공업 지역", type: "석유 화학 공업 중심",
+    crisis: "중국의 거대한 화학 공장들이 석유화학 제품(플라스틱, 비닐의 원료)을 엄청나게 찍어내면서 전 세계적으로 제품 가격이 하락하였습니다. 여기에 전 세계 국가들이 '일회용 플라스틱 사용 금지' 규제를 강화하면서, 석유를 끓여 플라스틱 원료를 만들던 여수의 거대한 굴뚝들이 멈춰 서고 있습니다.",
+    choices: [
+      { text: "석유로 플라스틱을 만드는 공장을 과감히 줄이고, 옥수수나 폐플라스틱을 녹여서 자연에서 저절로 썩는 '친환경 바이오 플라스틱' 공장과 수소 에너지 공장으로 전면 교체한다.", gain: "미래 기술 토큰 2개 획득, 환경 점수 상승", risk: "자본금 2칸 차감", emoji: "🌱", title: "친환경 바이오 산업으로 전환", sub: "미래 환경 시장을 선점하는 선택입니다." },
+      { text: "흔한 플라스틱 원료 대신, 스마트폰 화면이나 반도체를 만들 때 들어가는 매우 비싸고 특별한 '고부가가치 정밀 화학 제품'을 만드는 공장으로 빠르게 일부분만 개조한다.", gain: "자본금 1칸 획득", risk: "기술 격차 극복 실패 시 투자금 손실 위험 부담", emoji: "💎", title: "고부가가치 정밀 화학 전환", sub: "프리미엄 틈새 시장을 노리는 전략입니다." },
+      { text: "물건을 만들수록 손해이니 공장 가동을 잠시 멈추고 정기 점검 기간을 늘리며, 석유화학 경기가 다시 좋아질 때까지 직원을 줄이며 버틴다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "지역 협력업체 연쇄 도산, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "가동 중단 버티기", sub: "손실을 최소화하며 경기 회복을 기다립니다." }
+    ]
+  },
+  pohang: {
+    name: "포항 공업 지역", type: "제철 공업 중심",
+    crisis: "유럽연합(EU)이 탄소 배출량이 많은 수입품에 세금을 부과하는 탄소국경조정제도(CBAM)를 본격적으로 시작했습니다. 설상가상으로 전 세계 건물이 지어지지 않는 경기 침체로 철강(철) 수요가 급감하면서 포항의 철강 수출길이 막히고 있습니다. 석탄을 태워 철을 만드는 기존 방식으로는 더 이상 버티기 힘듭니다.",
+    choices: [
+      { text: "엄청난 비용이 들더라도 석탄 대신 수소를 사용해 물만 배출하는 '수소환원제철' 기술 개발과 친환경 전기로 전환에 올인한다.", gain: "미래 기술 토큰 2개 획득, 환경 점수 상승", risk: "막대한 투자비로 자본금 2칸 차감", emoji: "💧", title: "수소환원제철 기술 혁신", sub: "탄소 없는 제철의 미래를 여는 선택입니다." },
+      { text: "가격 경쟁력을 확보하기 위해 제품 가격을 낮추고, 규제가 느슨한 동남아시아나 미국 시장으로 수출 다변화를 노린다.", gain: "자본금 1칸 획득", risk: "유럽 시장 상실, 다음 턴에 환경 규제 페널티 발생 가능", emoji: "🌏", title: "신흥 시장 수출 다변화", sub: "규제 부담이 적은 시장으로 눈을 돌립니다." },
+      { text: "공장 가동률을 줄이고 감산에 들어가며 글로벌 경기가 회복될 때까지 조용히 버틴다.", gain: "단기 지출 방어 (자본금 차감 없음)", risk: "지역 고용 침체, 다음 1턴간 도시 정체 (이동 불가)", emoji: "⏳", title: "감산 버티기 전략", sub: "생산량을 줄여 충격을 최소화합니다." }
+    ]
+  }
+};
+
+let currentRegion = null;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectRegion(key) {
+  currentRegion = key;
+  const d = DATA[key];
+  document.getElementById('r-name').textContent = d.name;
+  document.getElementById('r-sub').textContent = d.type;
+  document.getElementById('r-crisis').textContent = d.crisis;
+
+  const container = document.getElementById('choices-container');
+  container.innerHTML = '';
+  d.choices.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'choice-card';
+    div.innerHTML = `<div class="choice-num">${i + 1}</div><p>${c.text}</p>`;
+    div.onclick = () => selectChoice(i);
+    container.appendChild(div);
+  });
+  showPage('page2');
+}
+
+function selectChoice(idx) {
+  const c = DATA[currentRegion].choices[idx];
+  document.getElementById('r-emoji').textContent = c.emoji;
+  document.getElementById('r-result-title').textContent = c.title;
+  document.getElementById('r-result-sub').textContent = c.sub;
+  document.getElementById('r-choice-text').textContent = c.text;
+  document.getElementById('r-gain').textContent = c.gain;
+  document.getElementById('r-risk').textContent = c.risk;
+  showPage('page3');
+}
+
+function goBack() { showPage('page1'); }
+function goToPage2() { showPage('page2'); }
+function restart() { showPage('page1'); }
+</script>
+</body>
+</html>
